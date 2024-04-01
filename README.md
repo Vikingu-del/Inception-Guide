@@ -42,17 +42,17 @@ it to install the operating system we want to use.
 
 In my case that im using Ubuntu 22.04 follow this lines to download
 
-➊ Update Package Lists
+➊ Update Package Lists</br>
 Before installing any new software, it's a good idea to update your package lists to ensure you get the latest versions of available software.
 
     sudo apt update
 
-➋ Install Required Dependencies
+➋ Install Required Dependencies</br>
 VirtualBox requires some dependencies to be installed. Run the following command to install them:
 
     sudo apt install build-essential dkms linux-headers-$(uname -r)
 
-➌ Add VirtualBox Repository
+➌ Add VirtualBox Repository</br>
 Next, add the VirtualBox repository to your system. This is necessary to get the latest version of VirtualBox.
 
     sudo add-apt-repository multiverse
@@ -65,15 +65,15 @@ Next, add the VirtualBox repository to your system. This is necessary to get the
 
     sudo mv oracle_vbox_2016.asc /etc/apt/trusted.gpg.d/
 
-➏ Add VirtualBox Repository:
+➏ Add VirtualBox Repository
 
     sudo add-apt-repository "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib"
 
-➐ Update Package Lists:
+➐ Update Package Lists
 
     sudo apt update
 
-➑ Install VirtualBox:
+➑ Install VirtualBox
 
     sudo apt install virtualbox
 
