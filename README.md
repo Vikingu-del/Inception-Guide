@@ -40,7 +40,7 @@ use for your Docker containers.
 If you do not have installed VirtualBox you can go at this link https://www.virtualbox.org/ and download it. We will need to use 
 it to install the operating system we want to use.
 
-In my case that im using Ubuntu 22.04 follow this lines to download
+In case you are using Ubuntu 22.04 and want to dowload it from terminal follow this lines to download:
 
 ➊ Update Package Lists</br>
 Before installing any new software, it's a good idea to update your package lists to ensure you get the latest versions of available software.
@@ -93,7 +93,4 @@ If it doesn't accept the command type
 And the you can start virtual from terminal
 
     virtualbox
-
-# STEP2: 
-
 
