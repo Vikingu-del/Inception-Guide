@@ -196,4 +196,204 @@ set up the disk in a traditional manner suitable for a small infrastructure comp
 
 ![Disk](photos/InstallAlpin/DiskandInstall.png)
 
-type reboot after the installation.
+Remove first the iso file before reboot so it will reboot base on what we did not based on the ISO image file
+
+![Remove iso file](photos/InstallAlpin/RemoveIsoFile.png)
+
+After type Reboot and you shoould see and sign in like below, with user and the password we set before
+
+![sign in](photos/InstallAlpin/eseferi42.png)
+
+Now lets install doas (is replacement for sudo comand) and configure it if you want to configure.
+
+	apk update - update the package index to ensure you get the latest version of sudo
+	apk add doas - install doas
+	vi /etc/doas.conf
+
+![Doas configuration](photos/InstallAlpin/Doas.png)
+
+Installatation and Configuration of SSH
+
+🔒 SSH, or Secure Shell, is both a protocol and a program used for remote access to servers. It establishes a secure channel, encrypting all data exchanged between the client and server. This ensures confidentiality and integrity, making SSH a vital tool for secure remote administration and file transfer. It is installed by default from the installation, also OpenSSh.
+
+Now we have to eddit with vi or if you want nano firs
+
+	doas apk update
+	doas apk add nano
+	doas nano /etc/ssh/sshd_config
+
+Or if you want with vi
+	doas vi /etc/ssh/sshd_config 
+	
+provided by OpenSSH to this link
+https://exampleconfig.com/view/openssh-alpine3-etc-ssh-sshd_config. if it is empty 
+try to reinstall openssh with this command 
+
+	doas apk add --force openssh
+
+After opening the file we should uncomment the port and make it 4242 and uncomment PermitRootLogin and set it to no
+
+![Configure sshd_config](photos/InstallAlpin/Uncommentport.png)
+
+Now we must edit the file /etc/ssh/ssh_config by uncommenting the port
+
+	doas vi /etc/ssh_config/
+	
+![Configure ssh_config](photos/InstallAlpin/ConfigureSsh_config.png)
+
+Finally we need to restart the ssh service 
+
+	doas rc-service sshd restart
+
+![restart sshd](photos/InstallAlpin/restartssh.png)
+
+To check if it is listening from 4242 we can see with this command
+
+	netstat -tuln | grep 4242
+
+![Listening in port 4242](photos/InstallAlpin/Listeningfrom42.png)
+
+Now lets go and add the port 4242 to our vm
+
+![Add port on vm](photos/InstallAlpin/ADDportonVM.png)
+
+And press on the button to add a port
+
+![port 4242 added](photos/InstallAlpin/4242added.png)
+
+Now lets connect with ssh from our terminal. Open terminal and type
+
+	ssh localhost -p 4242
+
+![Connect with local host](photos/InstallAlpin/sshlocalhostconnection.png)
+
+If you instead get an error like this below
+
+![Error ssh](photos/InstallAlpin/errorssh.png)
+
+Go and type in the terminal 
+
+	nano ~/.ssh/known_hosts
+
+And delite the line that start with local host
+
+![Delete line that start with host](photos/InstallAlpin/linetodelete.png)
+
+save and try again
+
+	ssh localhost -p 4242
+
+![Fixed ssh error](photos/InstallAlpin/savedsshconnect.png)
+
+Super you are connected now lets continue with the next steps.
+
+Now I suggest to you before continuing to the next step to research a little bit for docker containers at this link https://docs.docker.com/manuals/.
+
+# STEP2: Install Docker and Docker Compose
+
+First update Alpine
+
+![Update and upgrade apk](photos/InstallDocker/upgradeapk.png)
+
+Go doas nano /etc/apk/repositories and uncomment the commented repos 
+
+
+
+Install Docker and Docker Compose
+
+	apk add docker docker-compose
+
+![Uncomment the repos](photos/InstallDocker/uncomment_repos.png)
+
+apk update
+If you want to understand why we uncomented the repos read this note below taken from this website https://docs.genesys.com/Documentation/System/latest/DDG/InstallationofDockeronAlpineLinux
+
+![note](photos/InstallDocker/note.png)
+
+rund 
+
+	add --update docker openrc
+
+![Install docker](photos/InstallDocker/rundDockeropenrc.png)
+
+To start the Docker daemon at boot, run
+
+	doas rc-update add docker boot
+
+or
+
+	rc-update add docker default
+
+Execute 
+
+	service docker status 
+	
+to ensure the status is running. If it is stoped type
+
+	doase service docker start
+
+and check again 
+
+	service docker status
+
+Connecting to the Docker daemon through its socket requires you to add yourself to the docker group
+
+	doas addgroup username docker
+
+To use Docker Compose, we have to install it:
+
+	doas apk add docker-cli-compose
+
+![install docker compose](photos/InstallDocker/installdockercompose.png)
+
+Naming Docker Images and Services:
+
+Each Docker image must have the same name as its corresponding service. For example, if you have a service named nginx, the Docker image for that service should also be named nginx.
+
+## Write the Dockerfile for MariaDB:
+
+Create a file named Dockerfile in a directory called mariadb. This file will contain instructions for building the MariaDB image. Here's a basic example:
+
+Install MariaDB
+Go to home directory and create a folder inception
+
+![Create inception directory](photos/InstallDocker/Createinceptiondir.png)
+
+inside it create a folder called mariadb
+
+![Create mariadb directory](photos/InstallDocker/CreateMariadbdir.png)
+
+Create an empty file inside mariadb called Dockerfile
+
+![Create Dockerfile inside mariadb](photos/InstallDocker/CreateDockerfileMariadb.png)
+
+	nano inception/mariadb/Dockerfile
+
+And write inside 
+
+	# Use the specified version of Alpine
+	FROM alpine:3.19.1
+
+	# Install MariaDB
+	RUN apk --no-cache add mariadb mariadb-client
+
+	# Copy the custom configuration file (if any)
+	COPY my.cnf /etc/mysql/my.cnf
+
+	# Expose the default MariaDB port
+	EXPOSE 3306
+
+	# Set the default command to launch MariaDB
+	CMD ["mysqld_safe"]
+
+![Write inside dockerfile inside mariadb](photos/InstallDocker/nanoDockerfilemariadb.png)
+
+	FROM alpine:3.19.1: This line specifies the base image for your Docker image. It tells Docker to use the Alpine Linux version 3.19.1 image as the starting point for building your custom image. Alpine Linux is a lightweight Linux distribution, and the version 3.19.1 is specifically chosen in this case.
+
+	RUN apk --no-cache add mariadb mariadb-client: This line installs the MariaDB server (mariadb) and client (mariadb-client) packages using the apk package manager. The --no-cache flag tells apk not to cache the index locally, which helps to keep the Docker image smaller.
+
+	COPY my.cnf /etc/mysql/my.cnf: If you have a custom configuration file named my.cnf, this line copies it from your host machine into the Docker image at the specified location (/etc/mysql/my.cnf). This allows you to customize the MariaDB configuration within the Docker container.
+
+	EXPOSE 3306: This line exposes port 3306, the default port used by MariaDB, to allow communication with other containers or external services. However, it does not actually publish the port to the host machine. You would need to use the -p option with docker run to publish ports to the host.
+
+	CMD ["mysqld_safe"]: This line sets the default command that will be executed when a container is started from this image. In this case, it starts the MariaDB server in safe mode (mysqld_safe). You can override this command when running the container if needed.
