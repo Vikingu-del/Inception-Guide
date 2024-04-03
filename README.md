@@ -331,6 +331,8 @@ Super you are connected now lets continue with the next steps.
 
 Now I suggest to you before continuing to the next step to research a little bit for docker containers at this link https://docs.docker.com/manuals/.
 
+![Docker guide](photos/InstallDocker/Dockerguide.png)
+
 # STEP2: Install Docker and Docker Compose
 
 First update Alpine, if you downloaded and using sudo you can use sudo instead of doas
