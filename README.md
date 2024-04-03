@@ -98,12 +98,34 @@ And the you can start virtual from terminal
 
 ➊ Download Alpine Linux ISO</br>
 
-	Go to the Alpine Linux downloads page: https://alpinelinux.org/downloads/
-	Download the ISO image suitable for your VirtualBox virtual machine (e.g., x86_64).
+	Go to the Alpine Linux downloads page where we have the release branches: https://alpinelinux.org/releases/, so we can dowload 
+	the penultimate stable version of Alpine Download the ISO image suitable for your VirtualBox virtual machine (e.g., x86_64).
+	The penultimate stable version means not the last stable version but the second stable version.
+![Click the penulminate bersion](photos/InstallAlpin/3.18-stable.png)
 
-![Install Virtual Alpin ISO image](photos/InstallAlpin/DowloadingAlpinIsoImage.png)
+➋ So now we go here https://alpinelinux.org/downloads/ scroll down in the end of the page and click at "Older releases are found <u>here</u>"
 
-➋ Virtualbox setting up
+![Click here](photos/InstallAlpin/Clickhere.png)
+
+➌ Since we saw that the latest stable version was 3.18 we click on that
+
+![Choose 3.18](photos/InstallAlpin/Prenimableversion.png)
+
+➍ Within the "release/" directory, you'll find what we need.
+
+![Click on release](photos/InstallAlpin/ClickOnRelease.png)
+
+➎ Look for the appropriate subdirectory containing the packages for the x86_64 architecture. (Well this is mos suitable in my case).
+
+![alpin architectur](photos/InstallAlpin/x86_64.png)
+
+➏ You'll see a list of files corresponding to different Alpine Linux packages. Look for the ISO image file, which typically has a name 
+like "alpine-virt-3.18.0-x86_64.iso  " or similar.
+alpine-virt-3.18.0-x86_64.iso   - This is the standard edition of Alpine Linux version 3.18 for x86_64 architecture. It is a 190MB ISO file.
+
+![Download iso image](photos/InstallAlpin/DownloadIsoImage.png)
+
+➌ Virtualbox setting up
 
 Open virtualbox and press ate the New section
 
@@ -153,6 +175,10 @@ Choose the alpin disk image we dowloaded in the beggining
 
 ![Choose alpin disk image file](photos/InstallAlpin/AlpinDiskImage.png)
 
+In the image above there is the latest image iso, but I changed that later as I explained
+previosly in this tutorial, depended from the time you are doing this project you have to choose always
+the second latest stable version starting with virt for your virtual machine.
+
 Start Machine
 
 ![Start Machine](photos/InstallAlpin/StartMachine.png)
@@ -171,7 +197,7 @@ It will first ask for keyboard layout. Choose us and then again us
 ![Choose keyboard layout](photos/InstallAlpin/KeyboardLayout.png)
 
 After it will promt asking for the Hostname and the interface, and if we want to do any manual configuration of the network which we will put no
-because nothing is not required. Follow the example below
+because nothing is not required. Choose for hostname eseferi.42.fr. Follow the example below:
 
 ![Hostname and Interface](photos/InstallAlpin/interface.png)
 
@@ -186,6 +212,14 @@ TimeZone is required, since I'm in Germany I typed Europe and then Berlin
 Then it will be the sections of Proxy, Network Time Protocol and APK Mirror every default is ok so proceed by typing enter for each one of them 
 
 ![Proxy, Network Time Protocol and APK Mirror](photos/InstallAlpin/APKmirror.png)
+
+If you have something like the format below for the mirror 
+
+![mirrors](photos/InstallAlpin/mirror.de.leaseweb.net.png)
+
+you can type more and choose f which means Detect and add fastest mirror from above list
+
+![fastest mirror](photos/InstallAlpin/fasterstmirror.png)
 
 Follow like below for the user section
 
@@ -204,7 +238,7 @@ After type Reboot and you shoould see and sign in like below, with user and the 
 
 ![sign in](photos/InstallAlpin/eseferi42.png)
 
-Now lets install doas (is replacement for sudo comand) and configure it if you want to configure.
+Now lets install doas (is replacement for sudo comand) and configure it if you want to configure. or if you want sudo follow the next foto
 
 	apk update - update the package index to ensure you get the latest version of sudo
 	apk add doas - install doas
@@ -212,24 +246,32 @@ Now lets install doas (is replacement for sudo comand) and configure it if you w
 
 ![Doas configuration](photos/InstallAlpin/Doas.png)
 
+	vi /etc/apk/repositories
+	Uncomment alpine.mirror.wearetriple. om/v3/18/community
+
+![Uncomment alpine.mirror.wearetriple. om/v3/18/community](photos/InstallAlpin/uncomment_communityline.png)
+
+	apk update
+	apk add sudo
+
 Installatation and Configuration of SSH
 
 🔒 SSH, or Secure Shell, is both a protocol and a program used for remote access to servers. It establishes a secure channel, encrypting all data exchanged between the client and server. This ensures confidentiality and integrity, making SSH a vital tool for secure remote administration and file transfer. It is installed by default from the installation, also OpenSSh.
 
 Now we have to eddit with vi or if you want nano firs
 
-	doas apk update
-	doas apk add nano
-	doas nano /etc/ssh/sshd_config
+	sudo apk update
+	sudo apk add nano
+	sudo nano /etc/ssh/sshd_config
 
 Or if you want with vi
-	doas vi /etc/ssh/sshd_config 
+	sudo vi /etc/ssh/sshd_config 
 	
 provided by OpenSSH to this link
 https://exampleconfig.com/view/openssh-alpine3-etc-ssh-sshd_config. if it is empty 
 try to reinstall openssh with this command 
 
-	doas apk add --force openssh
+	sudo apk add --force openssh
 
 After opening the file we should uncomment the port and make it 4242 and uncomment PermitRootLogin and set it to no
 
@@ -237,13 +279,13 @@ After opening the file we should uncomment the port and make it 4242 and uncomme
 
 Now we must edit the file /etc/ssh/ssh_config by uncommenting the port
 
-	doas vi /etc/ssh_config/
+	sudo vi /etc/ssh_config/
 	
 ![Configure ssh_config](photos/InstallAlpin/ConfigureSsh_config.png)
 
 Finally we need to restart the ssh service 
 
-	doas rc-service sshd restart
+	sudo rc-service sshd restart
 
 ![restart sshd](photos/InstallAlpin/restartssh.png)
 
@@ -291,17 +333,17 @@ Now I suggest to you before continuing to the next step to research a little bit
 
 # STEP2: Install Docker and Docker Compose
 
-First update Alpine
+First update Alpine, if you downloaded and using sudo you can use sudo instead of doas
 
 ![Update and upgrade apk](photos/InstallDocker/upgradeapk.png)
 
-Go doas nano /etc/apk/repositories and uncomment the commented repos 
+Go sudo nano /etc/apk/repositories and uncomment the commented repos 
 
 
 
 Install Docker and Docker Compose
 
-	apk add docker docker-compose
+	sudo apk add docker docker-compose
 
 ![Uncomment the repos](photos/InstallDocker/uncomment_repos.png)
 
@@ -310,15 +352,15 @@ If you want to understand why we uncomented the repos read this note below taken
 
 ![note](photos/InstallDocker/note.png)
 
-rund 
+run
 
-	add --update docker openrc
+	sudo apk add --update docker openrc
 
 ![Install docker](photos/InstallDocker/rundDockeropenrc.png)
 
 To start the Docker daemon at boot, run
 
-	doas rc-update add docker boot
+	sudo rc-update add docker boot
 
 or
 
@@ -330,7 +372,7 @@ Execute
 	
 to ensure the status is running. If it is stoped type
 
-	doase service docker start
+	sudoe service docker start
 
 and check again 
 
@@ -338,11 +380,11 @@ and check again
 
 Connecting to the Docker daemon through its socket requires you to add yourself to the docker group
 
-	doas addgroup username docker
+	sudo addgroup username docker
 
 To use Docker Compose, we have to install it:
 
-	doas apk add docker-cli-compose
+	sudo apk add docker-cli-compose
 
 ![install docker compose](photos/InstallDocker/installdockercompose.png)
 
@@ -372,7 +414,7 @@ Create an empty file inside mariadb called Dockerfile
 And write inside 
 
 	# Use the specified version of Alpine
-	FROM alpine:3.19.1
+	FROM alpine:3.18.6
 
 	# Install MariaDB
 	RUN apk --no-cache add mariadb mariadb-client
@@ -388,7 +430,7 @@ And write inside
 
 ![Write inside dockerfile inside mariadb](photos/InstallDocker/nanoDockerfilemariadb.png)
 
-	FROM alpine:3.19.1: This line specifies the base image for your Docker image. It tells Docker to use the Alpine Linux version 3.19.1 image as the starting point for building your custom image. Alpine Linux is a lightweight Linux distribution, and the version 3.19.1 is specifically chosen in this case.
+	FROM alpine:3.18.6: This line specifies the base image for your Docker image. It tells Docker to use the Alpine Linux version 3.18.6 image as the starting point for building your custom image. Alpine Linux is a lightweight Linux distribution, and the version 3.18.6 is specifically chosen in this case.
 
 	RUN apk --no-cache add mariadb mariadb-client: This line installs the MariaDB server (mariadb) and client (mariadb-client) packages using the apk package manager. The --no-cache flag tells apk not to cache the index locally, which helps to keep the Docker image smaller.
 
