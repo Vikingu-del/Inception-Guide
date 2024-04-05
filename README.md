@@ -335,6 +335,46 @@ Now I suggest to you before continuing to the next step to research a little bit
 
 # STEP2: Install Docker and Docker Compose
 
+A little bit of theory now:
+
+### Docker
+
+Docker is a platform as a service (PaaS) tool that utilizes OS-level virtualization to deploy software in containers. These containers are lightweight and allow applications to operate efficiently in diverse environments, isolated from one another.
+
+### Background
+
+Containers encapsulate their own software, libraries, and configuration files, communicating through well-defined channels while sharing the services of a single operating system kernel. This shared kernel reduces resource usage compared to traditional virtual machines.
+
+### Operation
+
+Docker utilizes various interfaces to access Linux kernel virtualization features. It packages applications and dependencies into virtual containers that can run on Linux, Windows, or macOS, enabling flexibility in deployment locations. Resource isolation features like cgroups and kernel namespaces allow containers to run within a single Linux instance.
+
+### Components
+
+The Docker software offering comprises:
+
+1. Software
+Docker daemon (dockerd) manages containers and handles container objects, while the Docker client (docker) provides a command-line interface (CLI) for user interaction.
+
+2. Objects
+Docker objects include images, containers, and services, providing a standardized environment for running applications.
+
+		Docker containers are encapsulated environments for running applications, managed via the Docker API or CLI.
+
+		Docker images are read-only templates used to build containers.
+
+		Docker services enable scaling across multiple Docker daemons, forming a swarm of cooperating daemons.
+
+		Registries: Docker registries store and distribute Docker images, with Docker Hub being the primary public registry. Registries allow for image download ("pull") and upload ("push") operations.
+
+### Tools
+
+1. Docker Compose: Defines and runs multi-container Docker applications using YAML configuration files. It simplifies container creation and startup processes.
+
+2. Docker Swarm: Provides native clustering functionality for Docker containers, turning multiple Docker engines into a single virtual Docker engine.
+
+3. Docker Volume: Facilitates data management for Docker containers, enabling data persistence and sharing between containers.
+
 First update Alpine, if you downloaded and using sudo you can use sudo instead of doas
 
 ![Update and upgrade apk](photos/InstallDocker/upgradeapk.png)
@@ -394,6 +434,149 @@ Naming Docker Images and Services:
 
 Each Docker image must have the same name as its corresponding service. For example, if you have a service named nginx, the Docker image for that service should also be named nginx.
 
+
+Based on project guidelines, it's better to set up MariaDB first before setting up NGINX and the other services. Here's why:
+
+#### Dependency Order
+
+MariaDB is a fundamental component as it serves as the database backend for your WordPress website. Therefore, it makes sense to set up the database first before configuring other services that rely on it.
+
+#### Data Volume
+
+You need to set up volumes for the WordPress database and website files. Since MariaDB manages the database, you should create the volume for the database first to ensure it's properly configured and accessible before configuring the volume for the website files.
+
+#### Configuration Interdependencies
+
+Configuring MariaDB may require specific settings or initializations that could be referenced or utilized by other services like NGINX or WordPress. By setting up MariaDB first, you ensure that these configurations are in place before configuring other services.
+
+Therefore, the suggested order would be:
+
+1. Set up MariaDB.
+2. Set up NGINX.
+3. Set up WordPress and other services (if applicable), ensuring they are configured to interact with MariaDB as needed.
+4. Configure volumes for the database and website files accordingly.
+
+## Some Research
+
+<h3>What is Docker file?</h3>
+<p>
+	The Dockerfile employs DSL (Domain Specific Language) and comprises directives for building a Docker image. It delineates the steps to efficiently craft an image. When developing your application, ensure the Dockerfile's sequence aligns with the Docker daemon's execution, as it processes instructions sequentially, from top to bottom
+</p>
+<h3>What is Docker Image?</h3>
+<p>
+	An artifact representing multiple layers and serving as a lightweight, self-contained executable package is referred to as a Docker image. It encapsulates all necessary components to execute software, encompassing the code, runtime, libraries, environment variables, and configuration files.
+</p>
+<h3>What is Docker Container?</h3>
+<p>
+	A container is a live instance of a Docker image at runtime. It operates as an isolated environment, containing all the dependencies and configurations required for the application it hosts. Containers streamline both development and deployment processes, enhancing efficiency by ensuring the application runs independently from the host environment.
+</p>
+
+### Dockerfile Commands/Instructions
+
+1. **FROM**
+	- Represents the base image(OS), which is the command that is executed first before any other commands.
+	- **Syntax:**
+		```
+		FROM <ImageName>
+		```
+	- **Example:** 
+		The base image will be alpine: 3.18 Operating System.
+		```
+		FROM alpine: 3.18
+		```
+
+2. **COPY**
+	- The COPY command in Dockerfile is utilized to copy files or directories from the host machine into the Docker image during the build process.
+	- **Syntax:**
+		```
+		COPY <Source> <Destination>
+		```
+	- **Example:**
+		Let's say we have a custom configuration file called "nginx.conf" located in the "conf" directory of our project. We want to include this configuration file into our NGINX Docker image:
+		```
+		COPY conf/nginx.conf /etc/nginx/nginx.conf
+		```
+
+3. **ADD**
+	- The ADD command in Dockerfile serves the purpose of downloading files from remote HTTP/HTTPS sources and adding them to the Docker image during the build process.
+	- **Syntax:**
+		```
+		ADD <URL>
+		```
+	- **Example:**
+		Suppose we need to include the WordPress installation package directly from its official website into our Docker image:
+		```
+		ADD https://wordpress.org/latest.tar.gz /var/www/html/wordpress.tar.gz
+		```
+	- In this example:
+		- "https://wordpress.org/latest.tar.gz" is the URL of the latest WordPress installation package.
+		- "/var/www/html/wordpress.tar.gz" is the destination path within the Docker image where we want to store the downloaded WordPress package.
+
+4. **RUN**
+	- The RUN command in Dockerfile enables us to execute shell commands and scripts during the image build process. These commands are executed within the container environment, allowing us to perform various tasks like installing packages, configuring software, or setting up the environment.
+	- **Syntax:**
+		```
+		RUN <Command + ARGS>
+		```
+	- **Example:**
+		Suppose we need to install necessary software dependencies for our Alpine-based MariaDB container:
+		```
+		RUN apk update && apk add --no-cache mariadb mariadb-client
+		```
+	- In this example:
+		- "apk update" updates the package index before installing.
+		- "apk add --no-cache" installs MariaDB server and MariaDB client without caching the index and keeping the image size minimal.
+
+5. **CMD**
+	- The CMD instruction in a Dockerfile defines the default command to be executed when the container starts. It specifies the executable and any arguments that should be passed to it. If a Docker container is started without specifying a command, the command specified by CMD will be executed by default.
+	- **Syntax:**
+		```
+		CMD [command + args]
+		```
+	- **Example:**
+		Let's say we want to set the default command for a container running a custom Python script:
+		```
+		CMD ["python", "app.py"]
+		```
+	- In our project, to specify the default command for starting the MariaDB server:
+		```
+		CMD ["mysqld", "--user=mysql", "--init-file=/tmp/init.sql"]
+		```
+	- This command starts the MariaDB server with the specified options and initializes it with the SQL commands provided in the init.sql file.
+
+6. **ENTRYPOINT**
+	- The ENTRYPOINT instruction in a Dockerfile configures a container to run as an executable. When a Docker container is started, the command or script specified by ENTRYPOINT is executed. Unlike CMD, the command specified by ENTRYPOINT cannot be overridden by specifying a command at runtime.
+	- **Syntax:**
+		```
+		ENTRYPOINT [command + args]
+		```
+	- **Example:**
+		For instance, to configure a container to run a custom script named run.sh:
+		```
+		ENTRYPOINT ["./run.sh"]
+		```
+	- In our project, to define the entrypoint for starting the MariaDB server:
+		```
+		ENTRYPOINT ["mysqld"]
+        ```
+
+7. **MAINTAINER**
+	- The MAINTAINER command in a Dockerfile allows us to specify the author or owner of the Dockerfile.
+
+	- **Syntax:** 
+		```
+		MAINTAINER <AuthorName>
+		```
+  
+	- **Example:** 
+		Setting the author for the image.
+		```
+		MAINTAINER Erik <rk.seferi@gmail.com>
+		```
+
+
+
+
 ## Write the Dockerfile for MariaDB:
 
 Create a file named Dockerfile in a directory called mariadb. This file will contain instructions for building the MariaDB image. Here's a basic example:
@@ -432,12 +615,95 @@ And write inside
 
 ![Write inside dockerfile inside mariadb](photos/InstallDocker/nanoDockerfilemariadb.png)
 
-	FROM alpine:3.18.6: This line specifies the base image for your Docker image. It tells Docker to use the Alpine Linux version 3.18.6 image as the starting point for building your custom image. Alpine Linux is a lightweight Linux distribution, and the version 3.18.6 is specifically chosen in this case.
+	FROM alpine:3.18: This line specifies the base image for your Docker container. In this case, it pulls the Alpine Linux image with version 3.18 from the Docker Hub registry. Alpine Linux is a lightweight Linux distribution, and version 3.18 is the specific version chosen for this Docker image.
 
-	RUN apk --no-cache add mariadb mariadb-client: This line installs the MariaDB server (mariadb) and client (mariadb-client) packages using the apk package manager. The --no-cache flag tells apk not to cache the index locally, which helps to keep the Docker image smaller.
+	LABEL maintainer="Erik <rk.seferi@gmail.com>": This line sets metadata for the Docker image. It adds a label indicating the maintainer of the image, which is typically the person responsible for maintaining and updating the image. In this case, the maintainer is specified as "Erik" with the email address "rk.seferi@gmail.com".
 
-	COPY my.cnf /etc/mysql/my.cnf: If you have a custom configuration file named my.cnf, this line copies it from your host machine into the Docker image at the specified location (/etc/mysql/my.cnf). This allows you to customize the MariaDB configuration within the Docker container.
+	RUN apk update && apk --no-cache add mariadb mariadb-client: This line executes commands during the Docker image build process. It uses the apk package manager, which is specific to Alpine Linux, to update the package repository (apk update) and then install the mariadb and mariadb-client packages without caching (--no-cache). This command installs MariaDB server and client tools into the Docker image.
 
-	EXPOSE 3306: This line exposes port 3306, the default port used by MariaDB, to allow communication with other containers or external services. However, it does not actually publish the port to the host machine. You would need to use the -p option with docker run to publish ports to the host.
+	COPY conf/my.cnf /etc/mysql/my.cnf: This line copies a file from the host machine into the Docker image. It takes the my.cnf file located in the conf directory of your project on the host machine and places it into the /etc/mysql directory within the Docker image. The my.cnf file typically contains custom configurations for MariaDB.
 
-	CMD ["mysqld_safe"]: This line sets the default command that will be executed when a container is started from this image. In this case, it starts the MariaDB server in safe mode (mysqld_safe). You can override this command when running the container if needed.
+	COPY conf/init.sql /tmp/init.sql: Similar to the previous line, this line copies the init.sql file from the host machine into the Docker image. It places the file into the /tmp directory within the Docker image. The init.sql file usually contains SQL statements that will be executed when MariaDB starts up for the first time.
+
+	EXPOSE 3306: This line informs Docker that the container will listen on port 3306 at runtime. However, it doesn't actually publish the port. It's more of a documentation to let users know which ports are intended to be exposed.
+
+	CMD ["mysqld", "--user=mysql", "--init-file=/tmp/init.sql"]: This line specifies the default command to run when the container starts. It starts the MariaDB server (mysqld) with the specified options (--user=mysql for running as the MySQL user and --init-file=/tmp/init.sql to execute the initialization SQL script). This command initializes MariaDB with custom settings from the init.sql file.
+
+	These lines collectively define the Dockerfile for building a Docker image that includes MariaDB server with custom configurations and initialization script, based on Alpine Linux version 3.18.
+
+Lets create the conf directory
+
+	cd mariadb
+	sudo mkdir conf
+
+Edit my.cnf like below
+
+	sudo nano conf/my.cnf
+	
+
+![Edit my.cnf](photos/InstallDocker/MariaDb/nanoConfMy.conf.png)
+
+Let's go through each line:
+1. [client-server]:
+
+	This is a section header in the MySQL/MariaDB configuration file, indicating that the following configurations are relevant to both the MySQL/MariaDB client and server.
+
+socket=/var/lib/mysql/mysql.sock
+
+	This line specifies the location of the Unix socket file that the MySQL/MariaDB client and server use for local connections. The Unix socket allows communication between the client and server processes on the same machine.
+
+port=3306
+
+	This line specifies the port number on which the MySQL/MariaDB server listens for incoming connections. By default, MySQL/MariaDB uses port 3306 for TCP connections.
+
+2. [mysqld]
+
+	This is another section header, indicating that the following configurations are specific to the MySQL/MariaDB server daemon (mysqld).
+
+bind-address=0.0.0.0
+
+	This line specifies the network interface IP address to which the MySQL/MariaDB server should bind. In this case, 0.0.0.0 means the server will listen on all available network interfaces.
+
+skip-networking=false
+
+	This line specifies whether networking support is enabled for the MySQL/MariaDB server. When set to false, it means networking support is enabled, allowing the server to accept remote connections over the network.
+
+datadir=/var/lib/mysql
+
+	This line specifies the directory where MySQL/MariaDB stores its data files, including databases and tables. By default, the data directory is /var/lib/mysql.
+
+3. [mariadb]
+
+	This is a section header specific to MariaDB, indicating that the following configurations are relevant to MariaDB-specific settings.
+
+log_warnings=4
+	This line specifies the level of verbosity for logging warnings in MariaDB. In this case, 4 indicates a high level of verbosity, meaning more detailed warnings will be logged.
+
+log_error=/var/log/mysql/mariadb.err
+	This line specifies the path to the error log file for MariaDB. Any errors encountered by the MariaDB server will be logged to this file located at /var/log/mysql/mariadb.err.
+
+These configurations help define the behavior of the MySQL/MariaDB client and server, including how they communicate, where data is stored, and how logging is handled. They are essential for ensuring the proper functioning and management of the MySQL/MariaDB database server.
+	
+<b><i>Now lets edit conf/init.sql file</i></b>	
+	
+	sudo nano conf/init.sql
+
+Edit the file like below
+
+![Edit init.sql](photos/InstallDocker/MariaDb/nanoInitsql.png)
+
+<p>The init.sql file contains SQL commands that are executed when the MariaDB server container starts up. Let's break down each line:</p>
+
+1. USE mysql;: This line specifies that subsequent SQL commands will be executed in the context of the mysql database. It ensures that the following commands apply to the mysql system database, which stores user accounts, privileges, and other administrative information.
+
+2. CREATE DATABASE IF NOT EXISTS wordpress;: This command creates a new database named wordpress if it doesn't already exist. The IF NOT EXISTS clause ensures that the database is only created if it doesn't already exist.
+
+3. CREATE USER IF NOT EXISTS 'wordpress'@'%' IDENTIFIED BY 'secret';: This command creates a new user named wordpress with the password 'secret' who is allowed to connect from any host ('%'). The IF NOT EXISTS clause ensures that the user is only created if they don't already exist.
+
+4. GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'%';: This command grants all privileges on the wordpress database to the wordpress user from any host ('%'). This allows the wordpress user to perform any operation on the wordpress database.
+
+5. FLUSH PRIVILEGES;: This command reloads the grant tables, applying any changes made to user privileges immediately. It ensures that the privileges granted to the wordpress user take effect immediately.
+
+6. ALTER USER 'root'@'localhost' IDENTIFIED BY 'wordpress';: This command changes the password for the root user when connecting from localhost to 'wordpress'. This is typically done for security reasons, ensuring that the default root password is not used and is replaced with a more secure password.
+
+<p>Overall, the init.sql file initializes the MariaDB server by creating a database for WordPress, creating a user with appropriate privileges to access that database, and ensuring that the necessary privileges are granted and applied immediately. Additionally, it updates the password for the root user for improved security. </p>
