@@ -659,9 +659,6 @@ Navigate to the Docker file inside mariadb And write:
 	# Use the specified version of Alpine
 	FROM alpine:3.18
 
-	# Set the maintainer
-	LABEL maintainer="Erik <rk.seferi@gmail.com> "
-
 	# Install MariaDB
 	RUN apk update && apk --no-cache add mariadb mariadb-client
 
@@ -680,8 +677,6 @@ Navigate to the Docker file inside mariadb And write:
 
 	FROM alpine:3.18: This line specifies the base image for your Docker container. In this case, it pulls the Alpine Linux image with version 3.18 from the Docker Hub registry. Alpine Linux is a lightweight Linux distribution, and version 3.18 is the specific version chosen for this Docker image.
 
-	LABEL maintainer="Erik <rk.seferi@gmail.com>": This line sets metadata for the Docker image. It adds a label indicating the maintainer of the image, which is typically the person responsible for maintaining and updating the image. In this case, the maintainer is specified as "Erik" with the email address "rk.seferi@gmail.com".
-
 	RUN apk update && apk --no-cache add mariadb mariadb-client: This line executes commands during the Docker image build process. It uses the apk package manager, which is specific to Alpine Linux, to update the package repository (apk update) and then install the mariadb and mariadb-client packages without caching (--no-cache). This command installs MariaDB server and client tools into the Docker image.
 
 	COPY conf/my.cnf /etc/mysql/my.cnf: This line copies a file from the host machine into the Docker image. It takes the my.cnf file located in the conf directory of your project on the host machine and places it into the /etc/mysql directory within the Docker image. The my.cnf file typically contains custom configurations for MariaDB.
@@ -694,14 +689,9 @@ Navigate to the Docker file inside mariadb And write:
 
 	These lines collectively define the Dockerfile for building a Docker image that includes MariaDB server with custom configurations and initialization script, based on Alpine Linux version 3.18.
 
-Lets create the conf directory
+Navigate to the conf directory at mariadb create my.cnf file
 
-	cd mariadb
-	sudo mkdir conf
-
-Edit my.cnf like below
-
-	sudo nano conf/my.cnf
+	nano my.cnf
 	
 
 ![Edit my.cnf](photos/InstallDocker/MariaDb/nanoConfMy.conf.png)
@@ -747,9 +737,9 @@ log_error=/var/log/mysql/mariadb.err
 
 These configurations help define the behavior of the MySQL/MariaDB client and server, including how they communicate, where data is stored, and how logging is handled. They are essential for ensuring the proper functioning and management of the MySQL/MariaDB database server.
 	
-<b><i>Now lets edit conf/init.sql file</i></b>	
+<b><i>Now lets create inside the conf directory init.sql file</i></b>	
 	
-	sudo nano conf/init.sql
+	sudo nano init.sql
 
 Edit the file like below
 
@@ -770,3 +760,29 @@ Edit the file like below
 6. ALTER USER 'root'@'localhost' IDENTIFIED BY 'wordpress';: This command changes the password for the root user when connecting from localhost to 'wordpress'. This is typically done for security reasons, ensuring that the default root password is not used and is replaced with a more secure password.
 
 <p>Overall, the init.sql file initializes the MariaDB server by creating a database for WordPress, creating a user with appropriate privileges to access that database, and ensuring that the necessary privileges are granted and applied immediately. Additionally, it updates the password for the root user for improved security. </p>
+
+## Write the Dockerfile for NGINX
+
+NGINX is a powerful open-source web server and reverse proxy server known for its high performance, stability, and scalability. It is widely used to serve static content, cache dynamic content, and efficiently handle high loads of web traffic. NGINX is also commonly used as a reverse proxy to distribute incoming traffic across multiple servers or to load balance between different backend servers. Additionally, it offers advanced features such as SSL/TLS termination, URL rewriting, and HTTP/2 support, making it a popular choice for modern web applications and websites.
+
+Navigate to nginx directory and open Dockerfile to write what we need for the nginx image
+
+![Dockerfile for nginx](photos/InstallDocker/nginx/nginxDockerfile.png)
+
+1. FROM alpine:3.18: This line specifies the base image for your Docker container. In this case, you are using Alpine Linux version 3.18 as the base image.
+
+2. RUN apk update && apk upgrade && apk add --no-cache nginx openssl: This line installs NGINX and necessary packages using the Alpine package manager (apk). It first updates the package index (apk update), upgrades installed packages to their latest versions (apk upgrade), and then installs NGINX (apk add --no-cache nginx). The --no-cache flag is used to prevent caching of the package index and keep the Docker image size minimal.
+
+3. COPY conf/nginx.conf /etc/nginx/nginx.conf: This line copies the custom NGINX configuration file (nginx.conf) from the host machine to the appropriate location within the Docker container (/etc/nginx/nginx.conf).
+
+4. COPY conf/default.conf /etc/nginx/conf.d/default.conf: This line copies another custom NGINX configuration file (default.conf) to the NGINX configuration directory within the container (/etc/nginx/conf.d/default.conf).
+
+5. COPY index.html /usr/share/nginx/html/index.html: This line copies an HTML file (index.html) to the NGINX HTML directory within the container (/usr/share/nginx/html/index.html). This file will be served by NGINX when accessed via a web browser.
+
+6. EXPOSE 80: This line exposes port 80 of the Docker container to allow incoming HTTP traffic. This is necessary for NGINX to receive and respond to HTTP requests.
+
+7. CMD ["nginx", "-g", "daemon off;"]: This line specifies the command to run when the Docker container starts. It starts the NGINX server with the specified options (-g "daemon off;"), which runs NGINX in the foreground without forking into the background. This ensures that the container remains running as long as NGINX is active.
+
+8. LABEL maintainer="Erik <eseferi@student.42wolfsburg.de>": This line adds metadata to the Docker image, specifying the maintainer or author of the image along with their email address.
+
+These lines together define a Dockerfile that builds a Docker image containing NGINX with custom configuration files and an HTML page, configured to serve content over HTTP on port 80.
