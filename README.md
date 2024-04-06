@@ -571,10 +571,8 @@ Therefore, the suggested order would be:
 	- **Example:** 
 		Setting the author for the image.
 		```
-		MAINTAINER Erik <rk.seferi@gmail.com>
+		MAINTAINER Erik <eseferi.student@42wolfsburg.de>
 		```
-
-
 
 
 ## Write the Dockerfile for MariaDB:
@@ -582,38 +580,103 @@ Therefore, the suggested order would be:
 Create a file named Dockerfile in a directory called mariadb. This file will contain instructions for building the MariaDB image. Here's a basic example:
 
 Install MariaDB
-Go to home directory and create a folder inception
+Go to home directory and inside the user create a folder inception and inside we will create the folder src and and the Makefile
 
-![Create inception directory](photos/InstallDocker/Createinceptiondir.png)
+	sudo mkdir inception
 
-inside it create a folder called mariadb
+Inside Inception go and create all the folders and files inside exactly in the same way as described in the subject, meaning also their rights.
 
-![Create mariadb directory](photos/InstallDocker/CreateMariadbdir.png)
+![Project structure](photos/InstallDocker/MariaDb/projectstructure.png)
 
-Create an empty file inside mariadb called Dockerfile
+1. Which means inside the root directory which I choosed home inside my VM:
 
-![Create Dockerfile inside mariadb](photos/InstallDocker/CreateDockerfileMariadb.png)
+	sudo mkdir srcs && sudo touch Makefile
+		
+2. Navigate to srcs 
 
-	nano inception/mariadb/Dockerfile
+		cd srcs && sudo touch docker-compose.yml .env  && sudo mkdir requirements
 
-And write inside 
+3. Navigate to requirements
+
+		cd requirements && sudo mkdir bonus mariadb nginx tools wordpress
+
+4. Inside MariaDB
+
+		cd mariadb && sudo mkdir conf tools && sudo touch Dockerfile .dockerignore
+
+5. Inside nginx
+
+		cd ../nginx && sudo mkdir conf tools && sudo touch Dockerfile .dockerignore
+
+ 6. We navigate back and check if the structure is the same
+
+		cd ../../../ && ls -alR
+
+If you can see everything is structured in the way it should be, except that the rights of the directories and files are not the same as in the subject lets go and change them:
+
+Changing Owner and Permissions
+
+1. Change Owner
+
+		sudo chown -R eseferi:eseferi srcs
+		sudo chown -R eseferi:eseferi .
+		sudo chown -R eseferi:eseferi ..
+
+2. Change Permissions
+
+		sudo chmod 775 .
+		sudo chmod 1777 ..
+		sudo chmod 664 Makefile
+		sudo chmod 775 srcs
+
+Explanation
+Change Owner:
+
+The first three commands change the owner and group of directories.
+sudo chown -R eseferi:eseferi srcs: Changes ownership of srcs directory.
+sudo chown -R eseferi:eseferi .: Changes ownership of the current directory and its contents.
+sudo chown -R eseferi:eseferi ..: Changes ownership of the parent directory and its contents.
+Change Permissions:
+
+The next commands adjust directory and file permissions.
+sudo chmod 775 .: Sets permissions of the current directory to allow read, write, and execute for the owner and group, and read and execute for others.
+sudo chmod 1777 ..: Sets permissions of the parent directory with a sticky bit, allowing only the owner or root to delete or rename files.
+sudo chmod 664 Makefile: Sets permissions of the Makefile to allow read and write for the owner and group, and read-only for others.
+sudo chmod 775 srcs: Sets permissions of the srcs directory to allow read, write, and execute for the owner and group, and read and execute for others.
+
+![Change ownership and rights of the file](photos/InstallDocker/MariaDb/Changeownership.png)
+
+The same you did here navigate to all the files and directory and change the ownerships and the rights of the file.
+
+![The way to structure the directories and files](photos/InstallDocker/MariaDb/Followcommandstostructure.png)
+
+So now we should have a final look like below:
+
+![Final look of the structure](photos/InstallDocker/MariaDb/finallook.png)
+
+Navigate to the Docker file inside mariadb And write:
 
 	# Use the specified version of Alpine
-	FROM alpine:3.18.6
+	FROM alpine:3.18
+
+	# Set the maintainer
+	LABEL maintainer="Erik <rk.seferi@gmail.com> "
 
 	# Install MariaDB
-	RUN apk --no-cache add mariadb mariadb-client
+	RUN apk update && apk --no-cache add mariadb mariadb-client
 
-	# Copy the custom configuration file (if any)
-	COPY my.cnf /etc/mysql/my.cnf
+	# Copy the custom configuration files
+	COPY conf/my.cnf /etc/mysql/my.cnf
+	COPY conf/init.sql /tmp/init.sql
 
-	# Expose the default MariaDB port
+	# Expose the default MySQL port
 	EXPOSE 3306
 
-	# Set the default command to launch MariaDB
-	CMD ["mysqld_safe"]
+	# Define the entry point
+	CMD ["mysqld", "--user=mysql", "--init-file=/tmp/init.sql"]
 
-![Write inside dockerfile inside mariadb](photos/InstallDocker/nanoDockerfilemariadb.png)
+![Write inside dockerfile inside mariadb](photos/InstallDocker/MariaDb/nanoDockerfilemariadb.png)
+
 
 	FROM alpine:3.18: This line specifies the base image for your Docker container. In this case, it pulls the Alpine Linux image with version 3.18 from the Docker Hub registry. Alpine Linux is a lightweight Linux distribution, and version 3.18 is the specific version chosen for this Docker image.
 
