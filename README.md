@@ -238,21 +238,40 @@ After type Reboot and you shoould see and sign in like below, with user and the 
 
 ![sign in](photos/InstallAlpin/eseferi42.png)
 
-Now lets install doas (is replacement for sudo comand) and configure it if you want to configure. or if you want sudo follow the next foto
-
-	apk update - update the package index to ensure you get the latest version of sudo
-	apk add doas - install doas
-	vi /etc/doas.conf
-
-![Doas configuration](photos/InstallAlpin/Doas.png)
+Now lets install sudo
 
 	vi /etc/apk/repositories
-	Uncomment alpine.mirror.wearetriple. om/v3/18/community
+
+Uncomment alpine.mirror.wearetriple. om/v3/18/community to allow to get packages from the repository
 
 ![Uncomment alpine.mirror.wearetriple. om/v3/18/community](photos/InstallAlpin/uncomment_communityline.png)
 
 	apk update
 	apk add sudo
+
+Now change as a root with the command
+
+	su -
+
+And write 
+	
+	sudo visudo
+
+In the file uncomment the part where sudo has privileges by removing the hash symbol
+
+![Giving sudo permissions](photos/InstallAlpin/sudoRights.png)
+
+After this check if group sudo exist with the command
+
+	getent group sudo
+
+If no output is given it means that not. So we have to create the group and after add our user in the group:
+
+	1- addgroup sudo
+	2- adduser eseferi sudo
+
+Where eseferi is the my username and sudo is the groupt. Now you are good to go to exercise sudo writes with your user.
+
 
 Installatation and Configuration of SSH
 
@@ -327,7 +346,49 @@ save and try again
 
 ![Fixed ssh error](photos/InstallAlpin/savedsshconnect.png)
 
-Super you are connected now lets continue with the next steps.
+Now that you are connected lets continue with the next steps.
+We need also a user interface while I was reading the subject, because we will need to have a browser to see our results from wordpress. Follow this steps in your terminal to set up the UserInterface by installing the below commands:
+
+	sudo apk install xorg-server xfce4 xfce4-terminal lightdm lightdm-gtk-greeter xf86-input-libinput elogind
+
+1. xorg-server
+Description: The X.Org Server (X11 server)
+Purpose: Provides the core server package for the X Window System (X11), handling the display of graphics and managing input devices such as the keyboard and mouse.
+
+2. xfce4
+Description: XFCE Desktop Environment (Meta package)
+Purpose: Installs the core components and basic applications of the XFCE desktop environment, which is lightweight, fast, and user-friendly while being low on system resources.
+
+3. xfce4-terminal
+Description: XFCE Terminal Emulator
+Purpose: Provides the default terminal emulator for the XFCE desktop environment, allowing users to execute commands, run scripts, and manage their system via a command-line interface within a graphical window.
+
+4. lightdm
+Description: Light Display Manager
+Purpose: Manages user logins and starts the X server, offering a graphical login screen. It is lightweight and highly configurable.
+
+5. lightdm-gtk-greeter
+Description: LightDM GTK+ Greeter
+Purpose: Offers a GTK+ greeter for LightDM, which is the interface prompting users for login credentials. It is customizable to match the desktop environment's look and feel.
+
+6. xf86-input-libinput
+Description: X.Org libinput input driver
+Purpose: Handles input devices like keyboards, mice, touchpads, and touchscreens. It is the recommended input driver for modern X.Org Server setups due to its better hardware support and features.
+
+7. elogind
+Description: Session Management Daemon
+Purpose: Manages user sessions and switching. Elogind is a standalone logind implementation from systemd, providing essential session management features for systems not using the full systemd suite.
+
+After we installed the packages we have to update the services and reboot the machine:
+
+	setup-devd udev
+	rc-update add elogin
+	rc-update add lightdm
+	reboot
+
+And you should be able now to see something like below when you start the machine
+
+![User Interface for Alpine](photos/InstallAlpin/VirtualBox_InceptionErik_10_07_2024_14_05_30.png)
 
 Now I suggest to you before continuing to the next step to research a little bit for docker containers at this link https://docs.docker.com/manuals/.
 
@@ -375,19 +436,23 @@ Docker objects include images, containers, and services, providing a standardize
 
 3. Docker Volume: Facilitates data management for Docker containers, enabling data persistence and sharing between containers.
 
-First update Alpine, if you downloaded and using sudo you can use sudo instead of doas
+First update Alpine:
 
-![Update and upgrade apk](photos/InstallDocker/upgradeapk.png)
+	sudo apk update && sudo apk upgrade
 
-Go sudo nano /etc/apk/repositories and uncomment the commented repos 
+Type in Terminal
+	
+	sudo vim /etc/apk/repositories 
 
+and uncomment the commented repos 
+
+![Uncomment the repos](photos/InstallDocker/uncomment_repos.png)
 
 
 Install Docker and Docker Compose
 
 	sudo apk add docker docker-compose
 
-![Uncomment the repos](photos/InstallDocker/uncomment_repos.png)
 
 apk update
 If you want to understand why we uncomented the repos read this note below taken from this website https://docs.genesys.com/Documentation/System/latest/DDG/InstallationofDockeronAlpineLinux
@@ -559,6 +624,8 @@ Therefore, the suggested order would be:
 		```
 		ENTRYPOINT ["mysqld"]
         ```
+	In our project we will be using bashscripts instead of configuration files because like this we can pas environment variables, and I kind of feel more comfortable doing so.
+	
 
 7. **MAINTAINER**
 	- The MAINTAINER command in a Dockerfile allows us to specify the author or owner of the Dockerfile.
@@ -656,133 +723,53 @@ So now we should have a final look like below:
 
 Navigate to the Docker file inside mariadb And write:
 
-	# Use the specified version of Alpine
-	FROM alpine:3.18
+	FROM alpine:3.19.2
+	RUN apk update && apk add mariadb mariadb-client bash
+	COPY tools/container.sh /usr/local/bin/
+	RUN chmod +x /usr/local/bin/container.sh
+	ENTRYPOINT [ "container.sh" ]
 
-	# Install MariaDB
-	RUN apk update && apk --no-cache add mariadb mariadb-client
+![Write inside dockerfile inside mariadb](photos/InstallDocker/MariaDb/mariaDbDockerFile.png)
 
-	# Copy the custom configuration files
-	COPY conf/my.cnf /etc/mysql/my.cnf
-	COPY conf/init.sql /tmp/init.sql
+Navigate to the tools directory at mariadb create container.sh file and open with an editor
 
-	# Expose the default MySQL port
-	EXPOSE 3306
+	touch tools/container.sh
+	vim tools/container.sh
 
-	# Define the entry point
-	CMD ["mysqld", "--user=mysql", "--init-file=/tmp/init.sql"]
+Now write inside this bash script
 
-![Write inside dockerfile inside mariadb](photos/InstallDocker/MariaDb/nanoDockerfilemariadb.png)
+![Script for the container of MariaDB](photos/InstallDocker/MariaDb/mariaDbScript.png)
 
+This script initializes and configures a MariaDB server within a Docker container. It handles the initial setup, including making the server accessible to other containers, initializing the database, and setting up user accounts. The script ensures these operations are performed only once, even if the container is restarted.
 
-	FROM alpine:3.18: This line specifies the base image for your Docker container. In this case, it pulls the Alpine Linux image with version 3.18 from the Docker Hub registry. Alpine Linux is a lightweight Linux distribution, and version 3.18 is the specific version chosen for this Docker image.
+Script Breakdown
+Shebang and Error Handling:
 
-	RUN apk update && apk --no-cache add mariadb mariadb-client: This line executes commands during the Docker image build process. It uses the apk package manager, which is specific to Alpine Linux, to update the package repository (apk update) and then install the mariadb and mariadb-client packages without caching (--no-cache). This command installs MariaDB server and client tools into the Docker image.
+```bash
+#!/bin/bash
+set -e
+```
 
-	COPY conf/my.cnf /etc/mysql/my.cnf: This line copies a file from the host machine into the Docker image. It takes the my.cnf file located in the conf directory of your project on the host machine and places it into the /etc/mysql directory within the Docker image. The my.cnf file typically contains custom configurations for MariaDB.
+First Run Configuration:
 
-	COPY conf/init.sql /tmp/init.sql: Similar to the previous line, this line copies the init.sql file from the host machine into the Docker image. It places the file into the /tmp directory within the Docker image. The init.sql file usually contains SQL statements that will be executed when MariaDB starts up for the first time.
+Checks if the script is running for the first time by looking for the file `/etc/.firstrun`.
+If it is the first run, it appends configuration to `mariadb-server.cnf` to make the MariaDB server accessible from other containers (`bind-address=0.0.0.0` and `skip-networking=0`).
+Creates the `/etc/.firstrun` file to mark that the initial configuration has been done.
 
-	EXPOSE 3306: This line informs Docker that the container will listen on port 3306 at runtime. However, it doesn't actually publish the port. It's more of a documentation to let users know which ports are intended to be exposed.
+First Volume Mount Initialization:
 
-	CMD ["mysqld", "--user=mysql", "--init-file=/tmp/init.sql"]: This line specifies the default command to run when the container starts. It starts the MariaDB server (mysqld) with the specified options (--user=mysql for running as the MySQL user and --init-file=/tmp/init.sql to execute the initialization SQL script). This command initializes MariaDB with custom settings from the init.sql file.
+Checks if the data directory `/var/lib/mysql` is being mounted for the first time by looking for the file `/var/lib/mysql/.firstmount`.
+If it is the first mount, it ensures the MySQL data directory exists and initializes the database on the volume.
+Starts the MariaDB server in the background and captures its process ID.
+Waits for the server to start by using `mysqladmin ping` to check for server availability.
+Sets up the initial database and user accounts using SQL commands piped to the `mysql` command.
+Shuts down the temporary server and marks the volume as initialized by creating the `/var/lib/mysql/.firstmount` file.
 
-	These lines collectively define the Dockerfile for building a Docker image that includes MariaDB server with custom configurations and initialization script, based on Alpine Linux version 3.18.
+Starting the MariaDB Server:
 
-Navigate to the conf directory at mariadb create my.cnf file
+After initialization, the script starts the MariaDB server using `mysqld_safe`.
 
-	nano my.cnf
-	
-
-![Edit my.cnf](photos/InstallDocker/MariaDb/nanoConfMy.conf.png)
-
-Let's go through each line:
-1. [client-server]:
-
-	This is a section header in the MySQL/MariaDB configuration file, indicating that the following configurations are relevant to both the MySQL/MariaDB client and server.
-
-socket=/var/lib/mysql/mysql.sock
-
-	This line specifies the location of the Unix socket file that the MySQL/MariaDB client and server use for local connections. The Unix socket allows communication between the client and server processes on the same machine.
-
-port=3306
-
-	This line specifies the port number on which the MySQL/MariaDB server listens for incoming connections. By default, MySQL/MariaDB uses port 3306 for TCP connections.
-
-2. [mysqld]
-
-	This is another section header, indicating that the following configurations are specific to the MySQL/MariaDB server daemon (mysqld).
-
-bind-address=0.0.0.0
-
-	This line specifies the network interface IP address to which the MySQL/MariaDB server should bind. In this case, 0.0.0.0 means the server will listen on all available network interfaces.
-
-skip-networking=false
-
-	This line specifies whether networking support is enabled for the MySQL/MariaDB server. When set to false, it means networking support is enabled, allowing the server to accept remote connections over the network.
-
-datadir=/var/lib/mysql
-
-	This line specifies the directory where MySQL/MariaDB stores its data files, including databases and tables. By default, the data directory is /var/lib/mysql.
-
-3. [mariadb]
-
-	This is a section header specific to MariaDB, indicating that the following configurations are relevant to MariaDB-specific settings.
-
-log_warnings=4
-	This line specifies the level of verbosity for logging warnings in MariaDB. In this case, 4 indicates a high level of verbosity, meaning more detailed warnings will be logged.
-
-log_error=/var/log/mysql/mariadb.err
-	This line specifies the path to the error log file for MariaDB. Any errors encountered by the MariaDB server will be logged to this file located at /var/log/mysql/mariadb.err.
-
-These configurations help define the behavior of the MySQL/MariaDB client and server, including how they communicate, where data is stored, and how logging is handled. They are essential for ensuring the proper functioning and management of the MySQL/MariaDB database server.
-	
-<b><i>Now lets create inside the conf directory init.sql file</i></b>	
-	
-	sudo nano init.sql
-
-Edit the file like below
-
-![Edit init.sql](photos/InstallDocker/MariaDb/nanoInitsql.png)
-
-<p>The init.sql file contains SQL commands that are executed when the MariaDB server container starts up. Let's break down each line:</p>
-
-1. USE mysql;: This line specifies that subsequent SQL commands will be executed in the context of the mysql database. It ensures that the following commands apply to the mysql system database, which stores user accounts, privileges, and other administrative information.
-
-2. CREATE DATABASE IF NOT EXISTS wordpress;: This command creates a new database named wordpress if it doesn't already exist. The IF NOT EXISTS clause ensures that the database is only created if it doesn't already exist.
-
-3. CREATE USER IF NOT EXISTS 'wordpress'@'%' IDENTIFIED BY 'secret';: This command creates a new user named wordpress with the password 'secret' who is allowed to connect from any host ('%'). The IF NOT EXISTS clause ensures that the user is only created if they don't already exist.
-
-4. GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'%';: This command grants all privileges on the wordpress database to the wordpress user from any host ('%'). This allows the wordpress user to perform any operation on the wordpress database.
-
-5. FLUSH PRIVILEGES;: This command reloads the grant tables, applying any changes made to user privileges immediately. It ensures that the privileges granted to the wordpress user take effect immediately.
-
-6. ALTER USER 'root'@'localhost' IDENTIFIED BY 'wordpress';: This command changes the password for the root user when connecting from localhost to 'wordpress'. This is typically done for security reasons, ensuring that the default root password is not used and is replaced with a more secure password.
-
-<p>Overall, the init.sql file initializes the MariaDB server by creating a database for WordPress, creating a user with appropriate privileges to access that database, and ensuring that the necessary privileges are granted and applied immediately. Additionally, it updates the password for the root user for improved security. </p>
-
-## Write the Dockerfile for NGINX
-
-NGINX is a powerful open-source web server and reverse proxy server known for its high performance, stability, and scalability. It is widely used to serve static content, cache dynamic content, and efficiently handle high loads of web traffic. NGINX is also commonly used as a reverse proxy to distribute incoming traffic across multiple servers or to load balance between different backend servers. Additionally, it offers advanced features such as SSL/TLS termination, URL rewriting, and HTTP/2 support, making it a popular choice for modern web applications and websites.
-
-Navigate to nginx directory and open Dockerfile to write what we need for the nginx image
-
-![Dockerfile for nginx](photos/InstallDocker/nginx/nginxDockerfile.png)
-
-1. FROM alpine:3.18: This line specifies the base image for your Docker container. In this case, you are using Alpine Linux version 3.18 as the base image.
-
-2. RUN apk update && apk upgrade && apk add --no-cache nginx openssl: This line installs NGINX and necessary packages using the Alpine package manager (apk). It first updates the package index (apk update), upgrades installed packages to their latest versions (apk upgrade), and then installs NGINX (apk add --no-cache nginx). The --no-cache flag is used to prevent caching of the package index and keep the Docker image size minimal.
-
-3. COPY conf/nginx.conf /etc/nginx/nginx.conf: This line copies the custom NGINX configuration file (nginx.conf) from the host machine to the appropriate location within the Docker container (/etc/nginx/nginx.conf).
-
-4. COPY conf/default.conf /etc/nginx/conf.d/default.conf: This line copies another custom NGINX configuration file (default.conf) to the NGINX configuration directory within the container (/etc/nginx/conf.d/default.conf).
-
-5. COPY index.html /usr/share/nginx/html/index.html: This line copies an HTML file (index.html) to the NGINX HTML directory within the container (/usr/share/nginx/html/index.html). This file will be served by NGINX when accessed via a web browser.
-
-6. EXPOSE 80: This line exposes port 80 of the Docker container to allow incoming HTTP traffic. This is necessary for NGINX to receive and respond to HTTP requests.
-
-7. CMD ["nginx", "-g", "daemon off;"]: This line specifies the command to run when the Docker container starts. It starts the NGINX server with the specified options (-g "daemon off;"), which runs NGINX in the foreground without forking into the background. This ensures that the container remains running as long as NGINX is active.
-
-8. LABEL maintainer="Erik <eseferi@student.42wolfsburg.de>": This line adds metadata to the Docker image, specifying the maintainer or author of the image along with their email address.
-
-These lines together define a Dockerfile that builds a Docker image containing NGINX with custom configuration files and an HTML page, configured to serve content over HTTP on port 80.
+Key Points
+Environment Variables: Ensure the necessary environment variables (`MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, and `MYSQL_ROOT_PASSWORD`) are defined, either in the Dockerfile or passed at runtime.
+Root and User Permissions: The script handles necessary directory and configuration setups with root permissions, while the database operations and server run as a specified user (`eseferi`).
+This setup ensures that the MariaDB server is properly initialized and ready to use, with robust handling for first-time setup and subsequent container runs.

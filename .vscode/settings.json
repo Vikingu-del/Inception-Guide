@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "stat.h": "c",
+        "unistd.h": "c",
+        "pwd.h": "c",
+        "stdio.h": "c",
+        "grp.h": "c",
+        "fcntl.h": "c",
+        "time.h": "c",
+        "types.h": "c"
+    }
+}
