@@ -914,3 +914,30 @@ Please make sure to adjust these variables according to your security and applic
 ## Summary
 
 The `.env` file contains crucial environment variables that are necessary for the proper setup and access to MySQL services within your application. These variables ensure that your application can connect to the MySQL database and perform necessary operations.
+
+## MySQL Server Configuration
+
+Type vim ~/Inception/srcs/requirements/mariadb/conf/my.cnf and write inside:
+
+![myconf file](photos/InstallDocker/MariaDb/mariaMyCnf.png)
+
+The `my.cnf` file provides essential configuration options for the MySQL server (`mysqld`). Each directive (key = value pair) is crucial for defining how MySQL operates, including the user under which it runs, where it stores data, how it communicates with clients, and how it binds to network interfaces. Adjust these settings carefully based on the subject version requirements and security considerations.
+
+### [mysqld]
+
+#### user = mysql
+Specifies that the MySQL server process (`mysqld`) should run under the user `mysql`. This user typically has restricted permissions for security reasons.
+
+#### pid-file = /run/mysqld/mysqld.pid
+Defines the path to the PID (Process ID) file for the MySQL server process. This file stores the process ID of the running `mysqld` process.
+
+#### socket = /run/mysqld/mysqld.sock
+Specifies the path to the Unix socket file that clients use to connect to the MySQL server (`mysqld`). This is a faster and more secure method than using TCP/IP sockets.
+
+#### datadir = /var/lib/mysql-data
+Sets the directory where MySQL stores its data files. This directory should be owned by the `mysql` user and group to ensure proper permissions.
+
+#### bind-address = 0.0.0.0
+Configures MySQL to listen on all available network interfaces (`0.0.0.0`), allowing remote connections to the MySQL server. This is useful for applications that need to access MySQL from other hosts.
+
+Remember to save the `my.cnf` file after making any changes.
