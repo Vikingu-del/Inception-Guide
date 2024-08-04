@@ -1,7 +1,17 @@
 # Inception-Guide
 Learn to set up Docker containers &amp; Nginx with Alpine Linux. Follow our step-by-step guide for a seamless setup process. Start hosting your apps confidently!
 
-# Choosing between Alpin Linux and Debian
+## Table of Contents
+
+1. [Choosing between Alpine Linux and Debian](#choosing-between-alpin-linux-and-debian)
+2. [Dowload the VirtualBox](#download-the-virtualbox)
+3. [Install Alpine Linux](#install-alpine-linux)
+4. [Installation and Configuration of SSH](#installation-and-configuration-of-ssh)
+5. [Install Docker and Docker Compose](#install-docker-and-docker-compose)
+6. [Some Research](#some-research)
+7. [Setting Up Other Containers](#setting-up-other-containers)
+
+## Choosing between Alpin Linux and Debian
 
 Based on the requirements and considerations outlined in the project specifications, the best choice in my opinion will be Alpin Linux. Here's why:
 
@@ -35,7 +45,7 @@ Based on the requirements and considerations outlined in the project specificati
 Therefore, based on the outlined project requirements and considerations, Alpine Linux would be the recommended choice from my side to
 use for your Docker containers.
 
-# STEP1: Dowload the VirtualBox
+## Download the VirtualBox
 
 If you do not have installed VirtualBox you can go at this link https://www.virtualbox.org/ and download it. We will need to use 
 it to install the operating system we want to use.
@@ -94,7 +104,7 @@ And the you can start virtual from terminal
 
     virtualbox
 
-# STEP2: Install Alpin
+## Install Alpine Linux
 
 ➊ Download Alpine Linux ISO</br>
 
@@ -273,7 +283,7 @@ If no output is given it means that not. So we have to create the group and afte
 Where eseferi is the my username and sudo is the groupt. Now you are good to go to exercise sudo writes with your user.
 
 
-Installatation and Configuration of SSH
+## Installation and Configuration of SSH
 
 🔒 SSH, or Secure Shell, is both a protocol and a program used for remote access to servers. It establishes a secure channel, encrypting all data exchanged between the client and server. This ensures confidentiality and integrity, making SSH a vital tool for secure remote administration and file transfer. It is installed by default from the installation, also OpenSSh.
 
@@ -394,7 +404,7 @@ Now I suggest to you before continuing to the next step to research a little bit
 
 ![Docker guide](photos/InstallDocker/Dockerguide.png)
 
-# STEP2: Install Docker and Docker Compose
+## Install Docker and Docker Compose
 
 A little bit of theory now:
 
@@ -641,303 +651,19 @@ Therefore, the suggested order would be:
 		MAINTAINER Erik <eseferi.student@42wolfsburg.de>
 		```
 
-
-## Write the Dockerfile for MariaDB And the additional files:
-
-Create a file named Dockerfile in a directory called mariadb. This file will contain instructions for building the MariaDB image. Here's a basic example:
-
-Install MariaDB
-Go to home directory and inside the user create a folder inception and inside we will create the folder src and and the Makefile
-
-	sudo mkdir inception
-
-Inside Inception go and create all the folders and files inside exactly in the same way as described in the subject, meaning also their rights.
-
-![Project structure](photos/InstallDocker/MariaDb/projectstructure.png)
-
-1. Which means inside the root directory which I choosed home inside my VM:
-
-	sudo mkdir srcs && sudo touch Makefile
-		
-2. Navigate to srcs 
-
-		cd srcs && sudo touch docker-compose.yml .env  && sudo mkdir requirements
-
-3. Navigate to requirements
-
-		cd requirements && sudo mkdir bonus mariadb nginx tools wordpress
-
-4. Inside MariaDB
-
-		cd mariadb && sudo mkdir conf tools && sudo touch Dockerfile .dockerignore
-
-5. Inside nginx
-
-		cd ../nginx && sudo mkdir conf tools && sudo touch Dockerfile .dockerignore
-
- 6. We navigate back and check if the structure is the same
-
-		cd ../../../ && ls -alR
-
-If you can see everything is structured in the way it should be, except that the rights of the directories and files are not the same as in the subject lets go and change them:
-
-Changing Owner and Permissions
-
-1. Change Owner
-
-		sudo chown -R eseferi:eseferi srcs
-		sudo chown -R eseferi:eseferi .
-		sudo chown -R eseferi:eseferi ..
-
-2. Change Permissions
-
-		sudo chmod 775 .
-		sudo chmod 1777 ..
-		sudo chmod 664 Makefile
-		sudo chmod 775 srcs
-
-Explanation
-Change Owner:
-
-The first three commands change the owner and group of directories.
-sudo chown -R eseferi:eseferi srcs: Changes ownership of srcs directory.
-sudo chown -R eseferi:eseferi .: Changes ownership of the current directory and its contents.
-sudo chown -R eseferi:eseferi ..: Changes ownership of the parent directory and its contents.
-Change Permissions:
-
-The next commands adjust directory and file permissions.
-sudo chmod 775 .: Sets permissions of the current directory to allow read, write, and execute for the owner and group, and read and execute for others.
-sudo chmod 1777 ..: Sets permissions of the parent directory with a sticky bit, allowing only the owner or root to delete or rename files.
-sudo chmod 664 Makefile: Sets permissions of the Makefile to allow read and write for the owner and group, and read-only for others.
-sudo chmod 775 srcs: Sets permissions of the srcs directory to allow read, write, and execute for the owner and group, and read and execute for others.
-
-![Change ownership and rights of the file](photos/InstallDocker/MariaDb/Changeownership.png)
-
-The same you did here navigate to all the files and directory and change the ownerships and the rights of the file.
-
-![The way to structure the directories and files](photos/InstallDocker/MariaDb/Followcommandstostructure.png)
-
-So now we should have a final look like below:
-
-![Final look of the structure](photos/InstallDocker/MariaDb/finallook.png)
-
-Now lets set up all the files that we need for mariaDB
-![MariaDB setup](photos/InstallDocker/MariaDb/mariadb.png)
-
-## Dockerfile for MariaDB Container
-
-1. Use the specified version of Alpine
-
-```dockerfile
-FROM alpine:3.19.2
-```
-
-Explanation: This line specifies the base image for your Docker container. `alpine:3.19.2` refers to Alpine Linux version 3.19.2, which is a lightweight Linux distribution known for its small size and efficiency. Using a specific version ensures consistency and predictability in your container environment.
-
-2. Install MariaDB and Dependencies
-
-```dockerfile
-RUN apk update && apk add --no-cache mariadb mariadb-client bash sudo
-```
-
-Explanation: This `RUN` command updates the Alpine package index (`apk update`) and installs MariaDB (`mariadb`), MariaDB client tools (`mariadb-client`), Bash (`bash`), and sudo (`sudo`). The `--no-cache` flag ensures that no package index is cached to keep the image size smaller.
-
-3. Configure MariaDB
-
-```dockerfile
-RUN mkdir -p /run/mysqld && \
-    chown -R mysql:mysql /run/mysqld && \
-    mkdir -p /var/lib/mysql-data && \
-    chown -R mysql:mysql /var/lib/mysql-data
-```
-
-Explanation: These commands create necessary directories for MariaDB:
-- `/run/mysqld`: Directory where MariaDB will store runtime files like the process ID (`mysqld.pid`).
-- `/var/lib/mysql-data`: Directory where MariaDB will store its data.
-The `chown -R mysql:mysql` command recursively sets ownership of these directories to the `mysql` user and group, ensuring MariaDB has proper permissions to read and write data.
-
-4. Copy configuration files
-
-```dockerfile
-COPY conf/ /etc/mysql/
-```
-
-Explanation: This command copies local configuration files (`conf/` directory) into the container's `/etc/mysql/` directory. Configuration files include settings like MariaDB server options (`my.cnf`) and related files needed for MariaDB to run with your specified configurations.
-
-5. Copy scripts from the tools directory
-
-```dockerfile
-COPY tools/ /usr/local/bin/
-RUN chmod +x /usr/local/bin/*.sh
-```
-
-Explanation: These commands copy executable scripts (`tools/` directory) into the container's `/usr/local/bin/` directory. The `chmod +x` command ensures that all `.sh` scripts in `/usr/local/bin/` are executable. Scripts often include utilities or custom scripts needed for database management or container orchestration.
-
-6. Set environment variables
-
-```dockerfile
-ENV MYSQL_USER=$MYSQL_USER \
-    MYSQL_PASSWORD=$MYSQL_PASSWORD \
-    MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
-    MYSQL_DATABASE=$MYSQL_DATABASE
-```
-
-Explanation: This sets environment variables for MariaDB configuration:
-- `MYSQL_USER`: Username for accessing MariaDB.
-- `MYSQL_PASSWORD`: Password for the MariaDB user.
-- `MYSQL_ROOT_PASSWORD`: Root password for MariaDB server administration.
-- `MYSQL_DATABASE`: Optional database name to be created if it doesn't exist.
-
-7. Expose the MySQL port
-
-<h3>Docker File Explained</h3>
-
-```dockerfile
-EXPOSE 3306
-```
-
-Explanation: This exposes port 3306 on the container to allow external processes to connect to MariaDB. It doesn't actually publish the port to the host; that must be done at runtime with `-p` or `-P` options when running the container.
-
-8. Add a healthcheck script
-
-```dockerfile
-HEALTHCHECK CMD /usr/local/bin/healthcheck.sh
-```
-
-Explanation: This specifies a health check command that Docker runs to verify the container's health status. The `healthcheck.sh` script likely tests if MariaDB is responsive and running properly.
-
-9. Set the entrypoint and default command
-
-```dockerfile
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["mysqld"]
-```
-
-Explanation:
-- `ENTRYPOINT`: Sets the script (`docker-entrypoint.sh`) to be executed first when the container starts. It typically performs initialization tasks, such as setting up the database environment.
-- `CMD`: Provides default arguments (`mysqld`) to the `ENTRYPOINT`. In this case, it starts the MariaDB server (`mysqld`) when no specific command is provided at runtime.
-
-Summary:
-Your Dockerfile effectively sets up a MariaDB container with necessary configurations, scripts, environment variables, and health checks. It ensures that MariaDB is initialized correctly and runs smoothly in a containerized environment. Adjustments may be needed based on specific project requirements or security considerations, but overall, it provides a solid foundation for deploying MariaDB with Docker.
-
-
-# Shell Script Explanation
-
-Here's an explanation for each part of the shell script (`docker-entrypoint.sh`):
-
-## `#!/bin/sh`
-This line indicates that the script should be executed using the Bourne shell (`/bin/sh`).
-
-## `set -e`
-This option ensures that the script exits immediately if any command exits with a non-zero status, except in certain contexts like conditional statements or command pipelines.
-
-## `if [ "$1" = 'mysqld' ]; then`
-This conditional statement checks if the first argument passed to the script is `'mysqld'`. If true, it indicates that the script is being invoked to start the MySQL daemon (`mysqld`).
-
-## `if [ ! -d "/var/lib/mysql/mysql" ]; then`
-This block runs if the MySQL data directory (`/var/lib/mysql/mysql`) doesn't exist.
-
-- `mysql_install_db --user=mysql --skip-test-db --datadir=/var/lib/mysql-data --rpm`: Initializes the MySQL data directory and sets up system tables. It uses the specified options to configure the database.
-
-- `tempSqlFile='/tmp/mysql-first-time.sql'`: Defines a temporary SQL script file to initialize MySQL with necessary users and permissions.
-
-- `cat << EOF > "$tempSqlFile"`: Uses a here document to write SQL commands into `$tempSqlFile`. SQL commands include setting up initial privileges, creating a user (`$MYSQL_USER`) with password (`$MYSQL_PASSWORD`), granting privileges, creating a database (`$MYSQL_DATABASE` if provided), and updating root user credentials.
-
-- `mysqld --user=mysql --bootstrap --verbose=0 < "$tempSqlFile"`: Initializes MySQL (`mysqld`) using the prepared SQL script.
-
-- `rm -f "$tempSqlFile"`: Deletes the temporary SQL file after MySQL initialization.
-
-## `rm -f /run/mysqld/mysqld.pid`
-Removes any existing MySQL process ID file (`mysqld.pid`) from the runtime directory (`/run/mysqld`). This ensures a clean start without conflicts from previous runs.
-
-## `exec "$@" --datadir=/var/lib/mysql-data`
-Executes the command passed to the script (`"$@"`), typically `mysqld`, with additional options (`--datadir=/var/lib/mysql-data`). This starts MySQL with the specified data directory.
-
-## `fi`
-If the first argument (`$1`) is not `'mysqld'`, this line executes whatever command (`"$@"`) was passed to the script. This allows the script to act as a general entrypoint for Docker, handling both specific (`mysqld`) and generic command scenarios.
-
-## Summary
-The shell script (`docker-entrypoint.sh`) is designed to set up and initialize a MariaDB database when Docker starts a container. It handles tasks such as initial database setup, user configuration, privilege granting, and MySQL daemon startup. The use of conditional checks, environment variables, and proper script execution ensures that MariaDB starts correctly within the Docker container environment.
-
-
-```sh
-#!/bin/sh
-set -e
-```
-
-Explanation:
-- `#!/bin/sh`: Specifies that the script should be interpreted by the Bourne shell (`/bin/sh`).
-- `set -e`: Ensures that the script exits immediately if any command fails (returns a non-zero status).
-
-```sh
-mysqladmin ping -h localhost --port 3306 --silent --user=root --password=$MYSQL_ROOT_PASSWORD 2>/dev/null || exit 1
-```
-
-Explanation:
-- `mysqladmin ping`: Executes the `ping` command on the MySQL server using `mysqladmin`.
-- `-h localhost --port 3306`: Specifies the host (`localhost`) and port (`3306`) to connect to MySQL.
-- `--silent`: Causes `mysqladmin` to operate silently, without printing output.
-- `--user=root --password=$MYSQL_ROOT_PASSWORD`: Specifies the MySQL root user and its password.
-- `2>/dev/null`: Redirects stderr (error output) to `/dev/null`, discarding any error messages.
-- `|| exit 1`: If the `mysqladmin ping` command fails (returns a non-zero status), the script exits with status code 1, indicating a failure.
-
-Summary:
-The `healthcheck.sh` script is designed to perform a health check on the MySQL server running in a Docker container. It uses `mysqladmin` to ping the MySQL server and checks if it responds correctly. If the `ping` command fails, the script exits with a non-zero status, which Docker interprets as a health check failure for the container. This script is typically used as part of Docker's health check mechanism to monitor and ensure the availability of MySQL within the container environment.
-
-Environment Variables Explanation
-## Environment Variables
-
-In order to properly configure and connect to MySQL within your application or Docker environment, you need to set the following environment variables:
-
-### DOMAIN_NAME
-- Represents the domain name or hostname for your application or server.
-- Default value: `eseferi.42.fr`
-
-### MYSQL_USER
-- Represents the username used to access the MySQL database.
-- Default value: `wordpressuser`
-
-### MYSQL_PASSWORD
-- Represents the password associated with the MYSQL_USER account for MySQL database access.
-- Default value: `wordpresspassword`
-
-### MYSQL_ROOT_PASSWORD
-- Represents the root password for the MySQL database server.
-- Default value: `rootpassword`
-
-### MYSQL_DATABASE
-- Represents the name of the MySQL database that your application will use or create.
-- Default value: `wordpressdb`
-
-Please make sure to adjust these variables according to your security and application requirements.
-
-## Summary
-
-The `.env` file contains crucial environment variables that are necessary for the proper setup and access to MySQL services within your application. These variables ensure that your application can connect to the MySQL database and perform necessary operations.
-
-## MySQL Server Configuration
-
-Type vim ~/Inception/srcs/requirements/mariadb/conf/my.cnf and write inside:
-
-![myconf file](photos/InstallDocker/MariaDb/mariaMyCnf.png)
-
-The `my.cnf` file provides essential configuration options for the MySQL server (`mysqld`). Each directive (key = value pair) is crucial for defining how MySQL operates, including the user under which it runs, where it stores data, how it communicates with clients, and how it binds to network interfaces. Adjust these settings carefully based on the subject version requirements and security considerations.
-
-### [mysqld]
-
-#### user = mysql
-Specifies that the MySQL server process (`mysqld`) should run under the user `mysql`. This user typically has restricted permissions for security reasons.
-
-#### pid-file = /run/mysqld/mysqld.pid
-Defines the path to the PID (Process ID) file for the MySQL server process. This file stores the process ID of the running `mysqld` process.
-
-#### socket = /run/mysqld/mysqld.sock
-Specifies the path to the Unix socket file that clients use to connect to the MySQL server (`mysqld`). This is a faster and more secure method than using TCP/IP sockets.
-
-#### datadir = /var/lib/mysql-data
-Sets the directory where MySQL stores its data files. This directory should be owned by the `mysql` user and group to ensure proper permissions.
-
-#### bind-address = 0.0.0.0
-Configures MySQL to listen on all available network interfaces (`0.0.0.0`), allowing remote connections to the MySQL server. This is useful for applications that need to access MySQL from other hosts.
-
-Remember to save the `my.cnf` file after making any changes.
+## Setting Up Other Containers
+Check the other links below for setting up the other services
+
+1. Mandatory
+    - [Setting up the system and the virtual machine](README.md#table-of-contents)
+    - [Mariadb container set up](Mariadb.md#table-of-contents)
+    - [Nginx container set up](Nginx.md#table-of-contents)
+    - [Wordpress container set up](Wordpress.md#table-of-contents)
+2. Bonus
+    - [Redis](Redis.md#table-of-contents)
+    - [Ftp](Ftp.md#table-of-contents)
+    - [Adminer](Adminer.md#table-of-contents)
+    - [Portainer](Portainer.md#table-of-contents)
+    - [Static Site](StaticSite.md#table-of-contents)
+3. DockerCompose and Makefile
+    - [Running our Docker Network](Compilation.md#table-of-contents)
