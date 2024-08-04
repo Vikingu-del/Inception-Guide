@@ -145,6 +145,6 @@ Check the other links below for setting up the other services
     - [Ftp](Ftp.md#table-of-contents)
     - [Adminer](Adminer.md#table-of-contents)
     - [Portainer](Portainer.md#table-of-contents)
-    - [Static Site](StaticSite.md#table-of-contents)
+    - [Static Site](Static-Site.md#table-of-contents)
 3. DockerCompose and Makefile
     - [Running our Docker Network](Compilation.md#table-of-contents)
