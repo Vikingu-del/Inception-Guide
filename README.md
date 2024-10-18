@@ -392,7 +392,7 @@ Purpose: Manages user sessions and switching. Elogind is a standalone logind imp
 After we installed the packages we have to update the services and reboot the machine:
 
 	setup-devd udev
-	rc-update add elogin
+	rc-update add elogind
 	rc-update add lightdm
 	reboot
 
