@@ -256,12 +256,15 @@ Uncomment alpine.mirror.wearetriple. om/v3/18/community to allow to get packages
 
 ![Uncomment alpine.mirror.wearetriple. om/v3/18/community](photos/InstallAlpin/uncomment_communityline.png)
 
-	apk update
-	apk add sudo
-
 Now change as a root with the command
 
 	su -
+ 
+And install sudo
+```
+apk update
+apk add sudo
+```
 
 And write 
 	
@@ -308,7 +311,7 @@ After opening the file we should uncomment the port and make it 4242 and uncomme
 
 Now we must edit the file /etc/ssh/ssh_config by uncommenting the port
 
-	sudo vi /etc/ssh_config/
+	sudo vi /etc/ssh/ssh_config/
 	
 ![Configure ssh_config](photos/InstallAlpin/ConfigureSsh_config.png)
 
