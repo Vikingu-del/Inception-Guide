@@ -359,7 +359,7 @@ save and try again
 Now that you are connected lets continue with the next steps.
 We need also a user interface while I was reading the subject, because we will need to have a browser to see our results from wordpress. Follow this steps in your terminal to set up the UserInterface by installing the below commands:
 
-	sudo apk install xorg-server xfce4 xfce4-terminal lightdm lightdm-gtk-greeter xf86-input-libinput elogind
+	sudo apk add xorg-server xfce4 xfce4-terminal lightdm lightdm-gtk-greeter xf86-input-libinput elogind
 
 1. xorg-server
 Description: The X.Org Server (X11 server)
