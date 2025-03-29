@@ -250,16 +250,19 @@ After type Reboot and you shoould see and sign in like below, with user and the 
 
 Now lets install sudo
 
-	vi /etc/apk/repositories
-
-Uncomment alpine.mirror.wearetriple. om/v3/18/community to allow to get packages from the repository
-
-![Uncomment alpine.mirror.wearetriple. om/v3/18/community](photos/InstallAlpin/uncomment_communityline.png)
-
 Now change as a root with the command
 
 	su -
- 
+
+ Uncomment alpine.mirror.wearetriple. om/v3/18/community to allow to get packages from the repository
+
+	vi /etc/apk/repositories
+
+
+![Uncomment alpine.mirror.wearetriple. om/v3/18/community](photos/InstallAlpin/uncomment_communityline.png)
+
+
+
 And install sudo
 ```
 apk update
