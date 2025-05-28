@@ -492,7 +492,7 @@ Execute
 	
 to ensure the status is running. If it is stoped type
 
-	sudoe service docker start
+	sudo service docker start
 
 and check again 
 
